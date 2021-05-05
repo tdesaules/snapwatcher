@@ -1,0 +1,22 @@
+{
+  "name": "snapwatcher",
+  "version": "1.0.0",
+  "description": "snapwatcher to monitore snapcast server event and made operation on client",
+  "main": "snapwatcher.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tdesaules/snapwatcher.git"
+  },
+  "author": "",
+  "license": "MS-PL",
+  "bugs": {
+    "url": "https://github.com/tdesaules/snapwatcher/issues"
+  },
+  "homepage": "https://github.com/tdesaules/snapwatcher#readme",
+  "dependencies": {
+    "ws": "^7.4.5"
+  }
+}
