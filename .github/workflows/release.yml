@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  release:
+    name: Create Release
+    if: ${{ github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Github repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@tdesaules'
+      - name: Publish package to Github
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

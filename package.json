@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/tdesaules/snapwatcher#readme",
   "dependencies": {
+    "jsonrpc-lite": "^2.2.0",
+    "node-fetch": "^2.6.1",
     "ws": "^7.4.5"
   }
 }
