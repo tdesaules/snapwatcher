@@ -9,13 +9,7 @@ import (
 	"time"
 	"net"
 	"github.com/tdesaules/snapwatcher/lib"
-	"strings"
 )
-
-type Room struct {
-	Name string `json:"name"`
-	Members []string `json:"members"`
-}
 
 func main() {
 	interrupt := make(chan os.Signal, 1)
@@ -38,68 +32,43 @@ func main() {
 		var data snapcast.Snapcast
 		json.Unmarshal([]byte(message), &data)
 		if (data.Method == "Stream.OnUpdate") && (data.Params.Stream.Status == "playing") {
-			time.Sleep(1500 * time.Millisecond)
-			ws.SendText(`{"id":69443529,"jsonrpc":"2.0","method":"Server.GetStatus"}`)
+			// time.Sleep(0 * time.Millisecond)
+			// snapcast.ConfigureStream(data.Params.Stream.Id, data.Params.Stream.Status)
 		}
-		if data.Id == 69443529 {
-			var rooms []Room
-			var request string
-			var group_id string
-			var clients_id []string
-			json.Unmarshal([]byte(os.Getenv("MULTIROOM")), &rooms)
-			for stream_index := range data.Result.Server.Streams {
-				if data.Result.Server.Streams[stream_index].Status == "playing" {
-					for group_index := range data.Result.Server.Groups {
-						if snapcast.GetStreamStatusFromId(data, data.Result.Server.Groups[group_index].StreamId) == "idle" {
-							group_id = data.Result.Server.Groups[group_index].Id
-						} else {
-							log.Println("stream are already playing sound")
-						}
-					}
-					if group_id != "" {
-						request = `{"id":12931886,"jsonrpc":"2.0","method":"Group.SetStream","params":{"id":"` + group_id + `","stream_id":"` + data.Result.Server.Streams[stream_index].Id + `"}}`
-						ws.SendText(request)
-						log.Println("set stream " + data.Result.Server.Streams[stream_index].Id + " on group " + group_id )
-						request = `{"id":18029639,"jsonrpc":"2.0","method":"Group.SetName","params":{"id":"` + group_id + `","name":"` + data.Result.Server.Streams[stream_index].Id + `"}}`
-						ws.SendText(request)
-						log.Println("set groupe name " + data.Result.Server.Streams[stream_index].Id + " on group " + group_id )
-					}
-					for room_index := range rooms {
-						room := strings.Split(data.Result.Server.Streams[stream_index].Id, "_")[1]
-						clients_id = nil
-						if room == rooms[room_index].Name {
-							for member_index := range rooms[room_index].Members {
-								client_id := snapcast.GetClientIdFromName(data, rooms[room_index].Members[member_index])
-								clients_id = append(clients_id, client_id)
-							}
-							if clients_id != nil {
-								json_clients_id, _ := json.Marshal(clients_id)
-								request = `{"id":85139337,"jsonrpc":"2.0","method":"Group.SetClients","params":{"clients":` + string(json_clients_id) + `,"id":"` + group_id +`"}}`
-								if len(clients_id) == 1 {
-									ws.SendText(request)
-								} else {
-									ws.SendText(request)
-								}
-							}
-						}
-
-					}
-				}
-			}
+		if data.Method == "Client.OnConnect" {
+			snapcast.ConfigureGroupName(data.Params.Client.Config.Name)
 		}
-		if data.Id == 85139337 {
-			for group_index := range data.Result.Server.Groups {
-				if data.Result.Server.Groups[group_index].Name != data.Result.Server.Groups[group_index].StreamId {
-					log.Println("orphan group")
-				}
-			}
-		}
-		if data.Id == 12931886 {
-			log.Println("Stream id " + data.Result.StreamId + " has been apply")
-		}
-		if data.Id == 18029639 {
-			log.Println("Group name " + data.Result.Name + " has been apply")
-		}
+		// if data.Id == 69443529 {
+		// 	var rooms []snapcast.Room
+		// 	var room string
+		// 	var group_id string
+		// 	json.Unmarshal([]byte(os.Getenv("MULTIROOM")), &rooms)
+		// 	for stream_index := range data.Result.Server.Streams {
+		// 		group_id = ""
+		// 		if data.Result.Server.Streams[stream_index].Id != "idle" {
+		// 			room = strings.Split(data.Result.Server.Streams[stream_index].Id, "_")[1]
+		// 		}
+		// 		if data.Result.Server.Streams[stream_index].Status == "playing" {
+		// 			for group_index := range data.Result.Server.Groups {
+		// 				if (group_id == "") && (len(data.Result.Server.Groups[group_index].Clients) == 1) && (data.Result.Server.Groups[group_index].Clients[0].Config.Name == room) {
+		// 					log.Println("Case 1")
+		// 					group_id = data.Result.Server.Groups[group_index].Id
+		// 					snapcast.ConfigureGroup(data, group_id, data.Result.Server.Streams[stream_index].Id, room)
+		// 				}
+		// 				if (group_id == "") && (data.Result.Server.Streams[stream_index].Id == data.Result.Server.Groups[group_index].StreamId) {
+		// 					log.Println("Case 2")
+		// 					group_id = data.Result.Server.Groups[group_index].Id
+		// 					snapcast.ConfigureGroup(data, group_id, data.Result.Server.Streams[stream_index].Id, room)
+		// 				}
+		// 				if (group_id == "") && (snapcast.GetStreamStatusFromId(data, data.Result.Server.Groups[group_index].StreamId) == "idle") {
+		// 					log.Println("Case 3")
+		// 					group_id = data.Result.Server.Groups[group_index].Id
+		// 					snapcast.ConfigureGroup(data, group_id, data.Result.Server.Streams[stream_index].Id, room)
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	ws.OnDisconnected = func(err error, ws gowebsocket.Socket) {
@@ -120,9 +89,9 @@ func main() {
 		}
 		return
 	}
-	
+
 	ws.Connect()
-	
+
 	for {
 		select {
 		case <-interrupt:

@@ -8,4 +8,5 @@ require (
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e // indirect
 	github.com/sacOO7/go-logger v0.0.0-20180719173527-9ac9add5a50d // indirect
 	github.com/sacOO7/gowebsocket v0.0.0-20210105141656-425813c1c643
+	github.com/ybbus/jsonrpc/v2 v2.1.6 // indirect
 )
